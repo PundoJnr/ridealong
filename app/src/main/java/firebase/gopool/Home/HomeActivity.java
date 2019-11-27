@@ -5,12 +5,14 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -174,26 +176,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         com.google.android.libraries.places.api.Places.initialize(this, getResources().getString(R.string.google_maps_api_key));
 
-// Initialize the AutocompleteSupportFragment.
-        /*AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
-                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-
-        autocompleteFragment.setPlaceFields(Arrays.asList(com.google.android.libraries.places.api.model.Place.Field.ID, com.google.android.libraries.places.api.model.Place.Field.NAME));
-
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-
-            @Override
-            public void onPlaceSelected(@NonNull com.google.android.libraries.places.api.model.Place place) {
-                // TODO: Get info about the selected place.
-                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
-            }
-
-            @Override
-            public void onError(Status status) {
-                // TODO: Handle the error.
-                Log.i(TAG, "An error occurred: " + status);
-            }
-        });*/
         destinationTextview = findViewById(R.id.destinationTextview);
         locationTextView = (AutoCompleteTextView) findViewById(R.id.locationTextview);
 
@@ -238,9 +220,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     offerRideActivity.putExtra("DESTINATION", locationTextView.getText().toString());
                     offerRideActivity.putExtra("currentLatitue", currentLatitude);
                     offerRideActivity.putExtra("currentLongtitude", currentLongtitude);
+
                     Bundle b = new Bundle();
                     b.putParcelable("LatLng", currentLocation);
                     offerRideActivity.putExtras(b);
+
                     startActivity(offerRideActivity);
                 } else if (whichIndex == R.id.findButton && destinationTextview.getText().toString().trim().length() > 0 && locationTextView.getText().toString().trim().length() > 0) {
                     Intent findRideActivity = new Intent(mContext, SearchRideActivity.class);
@@ -583,8 +567,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
-        // Initialize Places.
-        com.google.android.libraries.places.api.Places.initialize(getApplicationContext(),getResources().getString(R.string.google_maps_api_key));
+
         mPlaceAutocompleteAdapter = new PlaceArrayAdapter(this,R.layout.autocomplete_place_item, LAT_LNG_BOUNDS);
 
 

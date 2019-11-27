@@ -267,14 +267,14 @@ public class OfferRideFragment extends AppCompatActivity {
     private void getActivityData() {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-          //  if (extras.containsKey("DESTINATION")){
+          if (extras.containsKey("DESTINATION")){
                 //from Home view passed to this class
                 locationId = getIntent().getStringExtra("DESTINATION");
                 destinationId = getIntent().getStringExtra("LOCATION");
                 Bundle b = getIntent().getExtras();
                 currentLocation = b.getParcelable("LatLng");
-                Log.i(TAG, "getActivityData: " + currentLocation.toString());
-//            } else {
+//                Log.i(TAG, "getActivityData: " + currentLocation.toString());
+         } //else {
 //
 //                //from ViewRideCreatedDialog passed to this class
 //                pickupTimeID = getIntent().getStringExtra("PICKUPTIME");
@@ -291,7 +291,7 @@ public class OfferRideFragment extends AppCompatActivity {
 //            }
         }
 //            currentLatitude = Long.parseLong(getIntent().getStringExtra("currentLatitue"));
-//            currentLongtitude = Long.parseLong(getIntent().getStringExtra("currentLongtitude"));
+        // currentLongtitude = Long.parseLong(getIntent().getStringExtra("currentLongtitude"));
     }
 
     private void setProfileWidgets(User userSettings){
