@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "461916227377",
+    "firebase_url": "https://gopool-5a5d9.firebaseio.com",
+    "project_id": "gopool-5a5d9",
+    "storage_bucket": "gopool-5a5d9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:461916227377:android:8052321d931450fb35d210",
+        "android_client_info": {
+          "package_name": "firebase.gopool"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "461916227377-pr3bb2nlj7vqoqg69nv30t5teg8bc7j3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "firebase.gopool",
+            "certificate_hash": "78faa3214faa40563ba25ae173915d57367d66a6"
+          }
+        },
+        {
+          "client_id": "461916227377-oep92s9tvjgeudq0afd05250hogrgias.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHk3LXpKbfhnAFVnNubq3FUdSTTiLxMmQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "461916227377-oep92s9tvjgeudq0afd05250hogrgias.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
