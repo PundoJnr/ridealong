@@ -40,7 +40,6 @@ import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBuffer;
@@ -52,13 +51,16 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
+
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+
+
+import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -70,19 +72,25 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import firebase.gopool.Login.LoginActivity;
 import firebase.gopool.Map.CustomInfoWindowAdapter;
-import firebase.gopool.Map.PlaceAutocompleteAdapter;
+
 import firebase.gopool.Map.PlaceInfo;
 import firebase.gopool.MapDirectionHelper.FetchURL;
 import firebase.gopool.MapDirectionHelper.TaskLoadedCallback;
 import firebase.gopool.R;
 import firebase.gopool.Utils.BottomNavigationViewHelper;
+import firebase.gopool.Map.PlaceArrayAdapter;
 import firebase.gopool.Utils.UniversalImageLoader;
 import firebase.gopool.dialogs.WelcomeDialog;
 import firebase.gopool.models.Token;
@@ -100,14 +108,16 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private static final float DEFAULT_ZOOM = 15f;
     private static final int PLACE_PICKER_REQUEST = 1;
-    private static final LatLngBounds LAT_LNG_BOUNDS = new LatLngBounds(
-            new LatLng(-40, -168), new LatLng(71, 136));
+    RectangularBounds LAT_LNG_BOUNDS = RectangularBounds.newInstance(
+            new LatLng(-40.880490, -168.184363), //dummy lat/lng
+            new LatLng(71.858754, 136.229596));
+
     private Boolean mLocationPermissionsGranted = false;
 
     //Google map variables
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProviderClient;
-    private PlaceAutocompleteAdapter mPlaceAutocompleteAdapter;
+    private PlaceArrayAdapter mPlaceAutocompleteAdapter;
     private GoogleApiClient mGoogleApiClient;
     private GeoDataClient mGeoDataClient;
     private PlaceDetectionClient mPlaceDetectionClient;
@@ -141,7 +151,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         Log.d(TAG, "onCreate: starting.");
-
         mAuth = FirebaseAuth.getInstance();
         mFirebaseDatabse = FirebaseDatabase.getInstance();
         mRef = mFirebaseDatabse.getReference();
@@ -164,10 +173,29 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             //Subscribes to a topic with that user ID so only that user can see messages with that user ID
             FirebaseMessaging.getInstance().subscribeToTopic(userID);
         }
+        com.google.android.libraries.places.api.Places.initialize(this, getResources().getString(R.string.google_maps_api_key));
 
+// Initialize the AutocompleteSupportFragment.
+        /*AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
 
-        //Intitate widgets
-        destinationTextview = (AutoCompleteTextView) findViewById(R.id.destinationTextview);
+        autocompleteFragment.setPlaceFields(Arrays.asList(com.google.android.libraries.places.api.model.Place.Field.ID, com.google.android.libraries.places.api.model.Place.Field.NAME));
+
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+
+            @Override
+            public void onPlaceSelected(@NonNull com.google.android.libraries.places.api.model.Place place) {
+                // TODO: Get info about the selected place.
+                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: " + status);
+            }
+        });*/
+        destinationTextview = findViewById(R.id.destinationTextview);
         locationTextView = (AutoCompleteTextView) findViewById(R.id.locationTextview);
 
         mSearchBtn = (Button) findViewById(R.id.searchBtn);
@@ -552,8 +580,14 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .build();
 
         destinationTextview.setOnItemClickListener(mAuotcompleteClickListener);
+        /* Now call adapter from activity */
 
-        mPlaceAutocompleteAdapter = new PlaceAutocompleteAdapter(this, mGeoDataClient, LAT_LNG_BOUNDS, null);
+
+
+        // Initialize Places.
+        com.google.android.libraries.places.api.Places.initialize(getApplicationContext(),getResources().getString(R.string.google_maps_api_key));
+        mPlaceAutocompleteAdapter = new PlaceArrayAdapter(this,R.layout.autocomplete_place_item, LAT_LNG_BOUNDS);
+
 
         destinationTextview.setAdapter(mPlaceAutocompleteAdapter);
 
@@ -642,8 +676,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             hideKeyboard(HomeActivity.this);
 
-            final AutocompletePrediction item = mPlaceAutocompleteAdapter.getItem(position);
-            final String placeId = item.getPlaceId();
+            final PlaceArrayAdapter.PlaceAutocomplete item = mPlaceAutocompleteAdapter.getItem(position);
+            final String placeId = (String) item.placeId;
 
             PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi
                     .getPlaceById(mGoogleApiClient, placeId);
@@ -821,5 +855,64 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onCancelled(@NonNull DatabaseError databaseError) {
             }
         });
+    }
+    private String getDirectionsUrl(LatLng origin, LatLng dest) {
+
+        // Origin of route
+        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
+
+        // Destination of route
+        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
+
+        // Sensor enabled
+        String sensor = "sensor=false";
+        String mode = "mode=driving";
+
+        // Building the parameters to the web service
+        String parameters = str_origin + "&" + str_dest + "&" + sensor + "&" + mode;
+
+        // Output format
+        String output = "json";
+
+        // Building the url to the web service
+        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
+
+
+        return url;
+    }
+
+    private String downloadUrl(String strUrl) throws IOException {
+        String data = "";
+        InputStream iStream = null;
+        HttpURLConnection urlConnection = null;
+        try {
+            URL url = new URL(strUrl);
+
+            urlConnection = (HttpURLConnection) url.openConnection();
+
+            urlConnection.connect();
+
+            iStream = urlConnection.getInputStream();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
+
+            StringBuffer sb = new StringBuffer();
+
+            String line = "";
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+
+            data = sb.toString();
+
+            br.close();
+
+        } catch (Exception e) {
+            Log.d("Exception", e.toString());
+        } finally {
+            iStream.close();
+            urlConnection.disconnect();
+        }
+        return data;
     }
 }

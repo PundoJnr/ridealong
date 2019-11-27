@@ -40,6 +40,8 @@ import com.google.android.gms.tasks.RuntimeExecutionException;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse;
 import com.google.android.libraries.places.api.net.PlacesClient;
 
 import java.util.ArrayList;
@@ -54,7 +56,7 @@ import firebase.gopool.R;
  * {@link AutocompletePrediction} results from the API are frozen and stored directly in this
  * adapter. (See {@link AutocompletePrediction#freeze()}.)
  */
-public class PlaceAutocompleteAdapter
+ class PlaceAutocompleteAdapter
         extends ArrayAdapter<AutocompletePrediction> implements Filterable {
 
     private static final String TAG = "PlaceAutoComplete";
@@ -78,24 +80,24 @@ public class PlaceAutocompleteAdapter
      * The autocomplete filter used to restrict queries to a specific set of place types.
      */
     private AutocompleteFilter mPlaceFilter;
-
+    private PlacesClient placesClient;
     /**
      * Initializes with a resource for text rows and autocomplete query bounds.
      *
      * @see ArrayAdapter#ArrayAdapter(Context, int)
      */
     public PlaceAutocompleteAdapter(Context context, GeoDataClient geoDataClient,
-                                    LatLngBounds bounds, AutocompleteFilter filter) {
+                                    LatLngBounds bounds, AutocompleteFilter filter,PlacesClient placesClient) {
         super(context, android.R.layout.simple_expandable_list_item_2, android.R.id.text1);
 
 
 
-        // Initialize Places.
-        Places.initialize(getContext(), getContext().getResources().getString(R.string.google_maps_api_key));
+
         // Create a new Places client instance.
-        PlacesClient placesClient = Places.createClient(getContext());
+        placesClient =this.placesClient;
         mGeoDataClient = geoDataClient;
         mBounds = bounds;
+        mPlaceFilter = filter;
         mPlaceFilter = filter;
 
     }
@@ -229,6 +231,7 @@ public class PlaceAutocompleteAdapter
         }
 
         try {
+
             AutocompletePredictionBufferResponse autocompletePredictions = results.getResult();
 
             Log.i(TAG, "Query completed. Received " + autocompletePredictions.getCount()
@@ -236,6 +239,7 @@ public class PlaceAutocompleteAdapter
 
             // Freeze the results immutable representation that can be stored safely.
             return DataBufferUtils.freezeAndClose(autocompletePredictions);
+
         } catch (RuntimeExecutionException e) {
             // If the query did not complete successfully return nullAIzaSyCen8Uef3Ts1vQoTdjrDJV_KkM1xF9dyUY
             Toast.makeText(getContext(), "Error contacting API: " + e.toString(),
